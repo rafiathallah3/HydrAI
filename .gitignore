@@ -7,18 +7,63 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Production & Build outputs
 dist
 dist-ssr
-*.local
+*.tsbuildinfo
+.vite
 
-# Editor directories and files
+# Single-file HTML standalone build output (re-generated with `npm run build`)
+the_thirsty_cloud_app.html
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Editor & IDE directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.sublime-workspace
+*.sublime-project
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Tt]humbs.db
+
+# Archived blueprints & obsolete drafts
+archive/
+
+# Documents & Presentation Media (PDF, Poster, large presentation assets)
+*.pdf
+*POSTER*
+*poster*
+/CIVICS POSTER.png
+/CIVICS PROJECT.pdf
+
+# Temporary & backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
