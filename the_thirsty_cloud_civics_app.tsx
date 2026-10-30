@@ -211,6 +211,7 @@ export default function TheThirstyCloudCivicsApp() {
   const [sessionEvapTotalMl, setSessionEvapTotalMl] = useState<number>(0);
   const [currentGpuTemp, setCurrentGpuTemp] = useState<number>(54.0);
   const [isSessionStacked, setIsSessionStacked] = useState<boolean>(false);
+  const [containerView, setContainerView] = useState<'indomie' | 'bottle' | 'battery'>('indomie');
   const streamTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // --- STATE SCENE 2: KALKULATOR SKALA ANGKATAN ---
@@ -219,6 +220,7 @@ export default function TheThirstyCloudCivicsApp() {
   const [weeklyImagePrompts, setWeeklyImagePrompts] = useState<number>(2);
   const [durationDays, setDurationDays] = useState<number>(120); // 1 semester = 120 hari
   const [isClosedLoopSystem, setIsClosedLoopSystem] = useState<boolean>(false);
+  const [analogyMatrixMode, setAnalogyMatrixMode] = useState<'indomie' | 'boba' | 'gallon' | 'phone'>('indomie');
 
   // --- STATE SCENE 3: INVESTIGASI DAERAH & REGULASI ---
   const [activeRegion, setActiveRegion] = useState<'cikarang' | 'batam'>('cikarang');
@@ -311,23 +313,33 @@ export default function TheThirstyCloudCivicsApp() {
   // Standar Bappenas/Cipta Karya: 60 liter air bersih/orang/hari (~240 L per keluarga 4 orang)
   const familyDaysSupply = Math.max(1, Math.round(totalAngkatanLiters / 240));
   const indomieBowlsCount = Math.max(1, Math.round((totalAngkatanLiters * 1000) / 400));
+  const bobaCupsCount = Math.max(1, Math.round((totalAngkatanLiters * 1000) / 500));
+  // 1 gambar AI = 1 full charge iPhone 15 (~0.013 kWh), 1 text prompt = ~0.03 full charge
+  const phoneRechargeCount = Math.max(
+    1,
+    Math.round(
+      studentCount * dailyChatPrompts * durationDays * 0.03 +
+        studentCount * weeklyImagePrompts * totalWeeks * 1.0
+    )
+  );
 
   // --- HANDLER SALIN PESAN WHATSAPP ---
   const handleCopyWhatsApp = () => {
     const student = studentName.trim() || 'Pelajar SMA Peduli Lingkungan';
     const school = schoolName.trim() ? ` (${schoolName.trim()})` : '';
 
-    const text = `🌊 *JEJAK AIR AI & HAK AIR BERSIH* 🌊
+    const text = `🍜 *ANALOGI NUGAS AI GEN Z: SEBERAPA BOROS AIRNYA?* 🍜
 Oleh: ${student}${school}
 
-Tahukah kamu? Dalam 1 semester pembelajaran (${durationDays} hari), kebiasaan nugas dengan AI di angkatan kami (${studentCount} siswa) berpotensi menguapkan:
-💧 *${totalAngkatanLiters.toLocaleString('id-ID')} Liter Air Bersih*
-📦 *${gallonAquaCount.toLocaleString('id-ID')} Galon Aqua 19L*
-🏠 Setara jatah air bersih harian *${familyDaysSupply.toLocaleString('id-ID')} hari* untuk keluarga di pesisir Pantura / Batam!
+Ternyata kebiasaan nugas pakai AI di angkatan kami (${studentCount} siswa // ${durationDays} hari) berpotensi menguapkan:
+🍜 *${indomieBowlsCount.toLocaleString('id-ID')} Mangkok Indomie Kuah* (kuah mi mendidih lenyap ke langit!)
+🧋 *${bobaCupsCount.toLocaleString('id-ID')} Gelas Boba Brown Sugar*
+📦 *${gallonAquaCount.toLocaleString('id-ID')} Galon Aqua 19L* (= jatah air ${familyDaysSupply.toLocaleString('id-ID')} hari keluarga pesisir)
+📱 *${phoneRechargeCount.toLocaleString('id-ID')} Kali Cas Penuh Baterai iPhone*
 
 *4 Jurus Green Prompting Pelajar:*
 1. Prompt Spesifik & One-Shot (hemat 70% energi)
-2. Pikirkan prompt gambar sebelum generate (stop re-roll 20x)
+2. Pikirkan prompt gambar sebelum generate (stop re-roll 20x!)
 3. Matikan AI untuk hal sepele yang ada di buku
 4. Tuntut transparansi data center sesuai Pasal 33 UUD 1945
 
@@ -428,51 +440,57 @@ The Thirsty Cloud: Literasi AI Hijau`;
     ctx.font = 'bold 22px "JetBrains Mono", monospace';
     ctx.fillText('STATUS: ADVOKAT LITERASI AI HIJAU & PASAL 33 UUD 1945', 120, 480);
 
-    // 4. Data Box: Angka Skala Sekolah
+    // 4. Data Box: Angka Skala Sekolah (Gen Z Analogy Deck)
     ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
     ctx.strokeStyle = '#0284c7';
     ctx.lineWidth = 4;
-    drawRoundedRect(ctx, 80, 600, 920, 450, 24);
+    drawRoundedRect(ctx, 80, 590, 920, 470, 24);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 28px "JetBrains Mono", monospace';
-    ctx.fillText(`DAMPAK 1 ANGKATAN (${studentCount} SISWA // 1 SEMESTER):`, 120, 670);
+    ctx.font = 'bold 26px "JetBrains Mono", monospace';
+    ctx.fillText(`DAMPAK 1 ANGKATAN (${studentCount} SISWA // 1 SEMESTER):`, 120, 650);
 
-    // Angka Besar Galon
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = '900 96px "JetBrains Mono", monospace';
-    ctx.fillText(`${gallonAquaCount.toLocaleString('id-ID')}`, 120, 780);
-
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'bold 36px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('Galon Aqua (19 Liter)', 500, 750);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 24px "JetBrains Mono", monospace';
-    ctx.fillText(`= ${totalAngkatanLiters.toLocaleString('id-ID')} Liter air tawar menguap ke atmosfer`, 500, 790);
-
-    // Garis Pemisah
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(120, 830);
-    ctx.lineTo(960, 830);
-    ctx.stroke();
-
-    // Metrik Ekuivalensi
+    // ANALOGI 1: MANGKOK INDOMIE
     ctx.fillStyle = '#f59e0b';
-    ctx.font = 'bold 28px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(`Setara Jatah Kebutuhan Air Bersih ${familyDaysSupply.toLocaleString('id-ID')} Hari`, 120, 890);
-
+    ctx.font = '900 46px "JetBrains Mono", monospace';
+    ctx.fillText(`🍜 ${indomieBowlsCount.toLocaleString('id-ID')} Mangkok`, 120, 725);
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '22px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('bagi satu keluarga di pesisir Pantura Cikarang/Bekasi & Batam (240 L/hari).', 120, 930);
+    ctx.fillText('kuah Indomie rebus mendidih yang diuapkan ke atmosfer!', 120, 760);
 
-    ctx.fillStyle = '#64748b';
+    // Garis Pemisah 1
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(120, 785);
+    ctx.lineTo(960, 785);
+    ctx.stroke();
+
+    // ANALOGI 2: GALON AQUA & JATAH KELUARGA
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '900 42px "JetBrains Mono", monospace';
+    ctx.fillText(`📦 ${gallonAquaCount.toLocaleString('id-ID')} Galon Aqua 19L`, 120, 840);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '22px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(`= ${totalAngkatanLiters.toLocaleString('id-ID')} L air (Jatah ${familyDaysSupply.toLocaleString('id-ID')} hari warga pesisir Pantura / Batam)`, 120, 875);
+
+    // Garis Pemisah 2
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(120, 900);
+    ctx.lineTo(960, 900);
+    ctx.stroke();
+
+    // ANALOGI 3: NGE-CHARGE IPHONE
+    ctx.fillStyle = '#10b981';
+    ctx.font = '900 38px "JetBrains Mono", monospace';
+    ctx.fillText(`📱 ${phoneRechargeCount.toLocaleString('id-ID')}x Cas Penuh iPhone`, 120, 955);
+    ctx.fillStyle = '#94a3b8';
     ctx.font = '20px "JetBrains Mono", monospace';
-    ctx.fillText(`Setara juga dengan ${indomieBowlsCount.toLocaleString('id-ID')} mangkok kuah Indomie.`, 120, 980);
+    ctx.fillText('Beban listrik GPU data center untuk tugas AI satu angkatan', 120, 990);
 
     // 5. Section 4 Jurus Green Prompting
     ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
@@ -615,6 +633,17 @@ The Thirsty Cloud: Literasi AI Hijau`;
                 Server GPU AI seperti <b>Nvidia H100</b> memanas hingga di atas 80°C. Di iklim tropis Indonesia, data center menguapkan jutaan liter air tawar setiap hari agar mesin tidak meleleh.
                 Berapa banyak air yang hilang demi tugas sekolahmu?
               </p>
+
+              {/* ANALOGI GEN Z CALLOUT */}
+              <div className="p-3 bg-amber-50 border-2 border-[#141517] shadow-[2px_2px_0px_#141517] flex items-center gap-3 font-mono text-xs">
+                <span className="text-2xl shrink-0">🍜</span>
+                <div className="leading-snug">
+                  <span className="font-extrabold text-[#141517] uppercase tracking-wide">Analogi Nyata Gen Z: </span>
+                  <span className="text-stone-800">
+                    1 sesi nugas AI = Kuah <b>1 Mangkok Indomie Rebus Kari</b> ludes menguap! 📱 1 gambar poster AI di Canva = Daya setara <b>nge-charge iPhone dari 0% sampai 100% penuh</b>!
+                  </span>
+                </div>
+              </div>
 
               <div className="pt-2 flex flex-wrap gap-3">
                 <a
@@ -821,13 +850,13 @@ The Thirsty Cloud: Literasi AI Hijau`;
             {/* KANAN: BOTOL AIR 600ML, MIKRO VS MAKRO, & TOMBOL SESI NUGAS */}
             <div className="lg:col-span-6 bg-white border-2 border-[#141517] shadow-[4px_4px_0px_#141517] p-5 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
                   <div>
                     <div className="text-[10px] font-mono font-bold uppercase text-stone-500">
-                      Visualisasi Air Pendingin
+                      Visualisasi Nyata Gen Z
                     </div>
                     <div className="text-base font-black">
-                      {isSessionStacked ? 'Akumulasi 1 Sesi Nugas (20 Chat + Gambar)' : 'Dampak 1 Prompt Tunggal'}
+                      {isSessionStacked ? '1 Sesi Nugas (20 Chat + Gambar)' : 'Dampak 1 Prompt Tunggal'}
                     </div>
                   </div>
                   <button
@@ -839,120 +868,254 @@ The Thirsty Cloud: Literasi AI Hijau`;
                     }}
                     className="px-2.5 py-1 border-2 border-[#141517] text-xs font-mono font-bold flex items-center gap-1 hover:bg-stone-100 transition-colors"
                   >
-                    <RotateCcw className="w-3 h-3" /> Isi Ulang Botol
+                    <RotateCcw className="w-3 h-3" /> Isi Ulang (Reset)
                   </button>
                 </div>
 
-                {/* AREA BOTOL & METERAN */}
-                <div className="grid grid-cols-12 gap-4 items-center my-4">
-                  {/* DIAGRAM SVG BOTOL AIR MINERAL 600 ML */}
+                {/* CONTAINER ANALOGY SWITCHER (GEN Z TABS) */}
+                <div className="flex items-center gap-1 p-1 bg-[#F8F7F4] border-2 border-[#141517] mt-3 mb-2 font-mono text-[11px] font-bold">
+                  <button
+                    onClick={() => setContainerView('indomie')}
+                    className={`flex-1 py-1 px-1.5 flex items-center justify-center gap-1 transition-all ${
+                      containerView === 'indomie'
+                        ? 'bg-[#141517] text-white shadow-[1px_1px_0px_#f59e0b]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    🍜 Mangkok Indomie (400ml)
+                  </button>
+                  <button
+                    onClick={() => setContainerView('bottle')}
+                    className={`flex-1 py-1 px-1.5 flex items-center justify-center gap-1 transition-all ${
+                      containerView === 'bottle'
+                        ? 'bg-[#141517] text-white shadow-[1px_1px_0px_#0284c7]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    🍼 Botol Aqua (600ml)
+                  </button>
+                  <button
+                    onClick={() => setContainerView('battery')}
+                    className={`flex-1 py-1 px-1.5 flex items-center justify-center gap-1 transition-all ${
+                      containerView === 'battery'
+                        ? 'bg-[#141517] text-white shadow-[1px_1px_0px_#10b981]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    📱 Baterai iPhone
+                  </button>
+                </div>
+
+                {/* AREA VISUALISASI DINAMIS */}
+                <div className="grid grid-cols-12 gap-3 items-center my-2">
+                  {/* VISUAL CONTAINER (KIRI) */}
                   <div className="col-span-5 flex flex-col items-center">
-                    <svg viewBox="0 0 140 260" className="w-32 h-56 overflow-visible">
-                      {/* Animasi Uap Air Mengepul Saat Komputasi Berjalan */}
-                      {(isStreaming || sessionEvapTotalMl > 0) && (
-                        <g className="stroke-stone-400" fill="none" strokeWidth="2" strokeLinecap="round">
-                          <path d="M55 12 Q 48 2, 58 -8 T 55 -24" className="animate-bounce" />
-                          <path d="M70 10 Q 78 0, 68 -10 T 72 -26" className="animate-pulse" />
-                          <path d="M85 12 Q 92 2, 82 -8 T 85 -24" className="animate-bounce" />
-                        </g>
-                      )}
+                    {containerView === 'indomie' ? (
+                      /* SVG MANGKOK AYAM JAGO INDOMIE KUAH TELUR */
+                      <div className="flex flex-col items-center">
+                        <svg viewBox="0 0 160 160" className="w-36 h-36 overflow-visible">
+                          {/* Animasi Uap Kuah Mendidih */}
+                          {(isStreaming || sessionEvapTotalMl > 0) && (
+                            <g className="stroke-amber-600" fill="none" strokeWidth="2.5" strokeLinecap="round">
+                              <path d="M55 25 Q 48 10, 60 -5 T 52 -22" className="animate-bounce" opacity="0.8" />
+                              <path d="M80 18 Q 88 5, 75 -10 T 82 -28" className="animate-pulse" opacity="0.9" />
+                              <path d="M105 25 Q 112 10, 100 -5 T 106 -22" className="animate-bounce" opacity="0.8" />
+                            </g>
+                          )}
+                          {/* Bayangan Mangkok */}
+                          <ellipse cx="80" cy="142" rx="55" ry="9" fill="#000000" opacity="0.12" />
+                          {/* Badan Mangkok Keramik */}
+                          <path
+                            d="M32 75 Q 28 135, 80 135 Q 132 135, 128 75 Z"
+                            fill="#ffffff"
+                            stroke="#141517"
+                            strokeWidth="3.5"
+                          />
+                          {/* Motif Garis Mangkok Ayam Jago */}
+                          <path d="M34 88 Q 80 98, 126 88" stroke="#dc2626" strokeWidth="3" fill="none" />
+                          <path d="M37 96 Q 80 106, 123 96" stroke="#0284c7" strokeWidth="2" fill="none" />
 
-                      {/* Tutup Botol */}
-                      <rect x="52" y="14" width="36" height="12" fill="#141517" />
-                      {/* Kontur Badan Botol */}
-                      <path
-                        d="M55 26 L55 42 L30 68 L30 236 C30 242 35 246 42 246 L98 246 C105 246 110 242 110 236 L110 68 L85 42 L85 26 Z"
-                        fill="#F8F7F4"
-                        stroke="#141517"
-                        strokeWidth="3"
-                      />
+                          {/* Bibir Mangkok */}
+                          <ellipse cx="80" cy="75" rx="48" ry="16" fill="#F8F7F4" stroke="#141517" strokeWidth="3.5" />
 
-                      {/* Clip Path untuk Air di Dalam Botol */}
-                      <clipPath id="bottleWaterClip">
-                        <path d="M55 26 L55 42 L30 68 L30 236 C30 242 35 246 42 246 L98 246 C105 246 110 242 110 236 L110 68 L85 42 L85 26 Z" />
-                      </clipPath>
+                          {/* Mie Kuning Keriting di Dalam Mangkok */}
+                          <g stroke="#f59e0b" strokeWidth="3" fill="none" strokeLinecap="round">
+                            <path d="M48 76 Q 58 68, 68 76 T 88 76 T 108 76" />
+                            <path d="M42 82 Q 52 74, 62 82 T 82 82 T 102 82 T 118 82" />
+                            <path d="M46 88 Q 56 80, 66 88 T 86 88 T 106 88" />
+                          </g>
 
-                      <g clipPath="url(#bottleWaterClip)">
-                        {(() => {
-                          const maxH = 178;
-                          const h = (bottleRemainingMl / 600) * maxH;
-                          const yPos = 246 - h;
-                          return (
-                            <>
-                              <rect
-                                x="25"
-                                y={yPos}
-                                width="90"
-                                height={h}
-                                fill={isSmartMode ? '#0284c7' : '#dc2626'}
-                                fillOpacity="0.85"
+                          {/* Irisan Telur Rebus */}
+                          <ellipse cx="64" cy="74" rx="13" ry="9" fill="#ffffff" stroke="#141517" strokeWidth="1.5" />
+                          <circle cx="64" cy="74" r="5" fill="#f97316" />
+
+                          {/* Taburan Daun Bawang */}
+                          <rect x="94" y="70" width="4" height="4" fill="#22c55e" rx="1" />
+                          <rect x="104" y="74" width="4" height="4" fill="#22c55e" rx="1" />
+                          <rect x="86" y="80" width="4" height="4" fill="#22c55e" rx="1" />
+
+                          {/* Kuah Kaldu Indomie (Menyesuaikan dengan sessionEvapTotalMl) */}
+                          {(() => {
+                            const soupRemaining = Math.max(0, 400 - sessionEvapTotalMl);
+                            const soupHeight = (soupRemaining / 400) * 16;
+                            if (soupRemaining <= 0) return null;
+                            return (
+                              <ellipse
+                                cx="80"
+                                cy={75 + (16 - soupHeight) * 0.5}
+                                rx={46 * (soupRemaining / 400)}
+                                ry={soupHeight}
+                                fill="#d97706"
+                                fillOpacity="0.75"
                                 className="transition-all duration-300"
                               />
-                              {isStreaming && (
-                                <g fill="#ffffff" fillOpacity="0.75">
-                                  <circle cx="50" cy={235} r="3.5" className="animate-ping" />
-                                  <circle cx="72" cy={228} r="4.5" className="animate-bounce" />
-                                  <circle cx="88" cy={236} r="3" className="animate-ping" />
-                                </g>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </g>
-
-                      {/* Garis Ukur 400ml (Kuah 1 Mangkok Indomie) */}
-                      <line x1="26" y1="127" x2="114" y2="127" stroke="#141517" strokeWidth="1.5" strokeDasharray="3 3" />
-                      <text x="116" y="130" className="text-[9px] font-mono font-bold fill-[#141517]">
-                        400ml
-                      </text>
-                      {/* Garis Ukur 200ml */}
-                      <line x1="26" y1="186" x2="114" y2="186" stroke="#141517" strokeWidth="1" strokeDasharray="2 2" />
-                      <text x="116" y="189" className="text-[9px] font-mono fill-stone-500">
-                        200ml
-                      </text>
-                    </svg>
-                    <div className="font-mono text-xs font-bold mt-1">
-                      Sisa: <span className="underline">{bottleRemainingMl} ml</span> / 600 ml
-                    </div>
+                            );
+                          })()}
+                        </svg>
+                        <div className="font-mono text-[11px] font-bold mt-1 text-center">
+                          Kuah: <span className="underline">{Math.max(0, 400 - sessionEvapTotalMl)} ml</span> / 400 ml
+                        </div>
+                      </div>
+                    ) : containerView === 'bottle' ? (
+                      /* SVG BOTOL AIR 600ML */
+                      <div className="flex flex-col items-center">
+                        <svg viewBox="0 0 140 260" className="w-28 h-48 overflow-visible">
+                          {(isStreaming || sessionEvapTotalMl > 0) && (
+                            <g className="stroke-stone-400" fill="none" strokeWidth="2" strokeLinecap="round">
+                              <path d="M55 12 Q 48 2, 58 -8 T 55 -24" className="animate-bounce" />
+                              <path d="M70 10 Q 78 0, 68 -10 T 72 -26" className="animate-pulse" />
+                              <path d="M85 12 Q 92 2, 82 -8 T 85 -24" className="animate-bounce" />
+                            </g>
+                          )}
+                          <rect x="52" y="14" width="36" height="12" fill="#141517" />
+                          <path
+                            d="M55 26 L55 42 L30 68 L30 236 C30 242 35 246 42 246 L98 246 C105 246 110 242 110 236 L110 68 L85 42 L85 26 Z"
+                            fill="#F8F7F4"
+                            stroke="#141517"
+                            strokeWidth="3"
+                          />
+                          <clipPath id="bottleWaterClipModal">
+                            <path d="M55 26 L55 42 L30 68 L30 236 C30 242 35 246 42 246 L98 246 C105 246 110 242 110 236 L110 68 L85 42 L85 26 Z" />
+                          </clipPath>
+                          <g clipPath="url(#bottleWaterClipModal)">
+                            {(() => {
+                              const maxH = 178;
+                              const h = (bottleRemainingMl / 600) * maxH;
+                              const yPos = 246 - h;
+                              return (
+                                <rect
+                                  x="25"
+                                  y={yPos}
+                                  width="90"
+                                  height={h}
+                                  fill={isSmartMode ? '#0284c7' : '#dc2626'}
+                                  fillOpacity="0.85"
+                                  className="transition-all duration-300"
+                                />
+                              );
+                            })()}
+                          </g>
+                          <line x1="26" y1="127" x2="114" y2="127" stroke="#141517" strokeWidth="1.5" strokeDasharray="3 3" />
+                          <text x="116" y="130" className="text-[9px] font-mono font-bold fill-[#141517]">
+                            400ml
+                          </text>
+                        </svg>
+                        <div className="font-mono text-[11px] font-bold mt-1 text-center">
+                          Sisa: <span className="underline">{bottleRemainingMl} ml</span> / 600 ml
+                        </div>
+                      </div>
+                    ) : (
+                      /* SVG BATERAI IPHONE (CHARGING GAUGE) */
+                      <div className="flex flex-col items-center">
+                        <svg viewBox="0 0 120 180" className="w-28 h-44 overflow-visible">
+                          {/* Smartphone Body */}
+                          <rect x="15" y="10" width="90" height="160" rx="18" fill="#0f172a" stroke="#141517" strokeWidth="3" />
+                          {/* Notch / Dynamic Island */}
+                          <rect x="42" y="18" width="36" height="8" rx="4" fill="#000000" />
+                          {/* Battery Shell */}
+                          <rect x="30" y="45" width="60" height="100" rx="8" fill="#1e293b" stroke="#64748b" strokeWidth="2" />
+                          <rect x="50" y="38" width="20" height="7" rx="2" fill="#64748b" />
+                          {/* Battery Fill Level */}
+                          {(() => {
+                            const isImg = selectedTpl.category === 'image';
+                            const fillPct = isImg ? 100 : selectedTpl.category === 'deep' ? 35 : 12;
+                            const h = (fillPct / 100) * 88;
+                            return (
+                              <rect
+                                x="36"
+                                y={139 - h}
+                                width="48"
+                                height={h}
+                                rx="4"
+                                fill={isImg ? '#ef4444' : isSmartMode ? '#10b981' : '#f59e0b'}
+                                className="transition-all duration-300"
+                              />
+                            );
+                          })()}
+                          {/* Charging Lightning Bolt */}
+                          <path
+                            d="M62 75 L54 95 L62 95 L58 115 L70 93 L62 93 Z"
+                            fill="#ffffff"
+                            stroke="#141517"
+                            strokeWidth="1.5"
+                          />
+                        </svg>
+                        <div className="font-mono text-[11px] font-bold mt-1 text-center">
+                          {selectedTpl.category === 'image'
+                            ? '100% Cas Penuh iPhone'
+                            : selectedTpl.category === 'deep'
+                            ? '~35% Daya Cas HP'
+                            : '~12% Daya Cas HP'}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* DETAIL MIKRO VS MAKRO */}
-                  <div className="col-span-7 space-y-2.5">
-                    {/* INDIKATOR TETESAN PER PROMPT */}
-                    <div className="p-2.5 bg-[#F8F7F4] border border-[#141517]">
-                      <div className="flex justify-between text-[11px] font-mono font-bold text-stone-700">
-                        <span>AIR MENGUAP (1 PROMPT)</span>
-                        <span className={isSmartMode ? 'text-emerald-700' : 'text-red-600'}>
-                          -{isSmartMode ? selectedTpl.goodWaterTotalMl : selectedTpl.badWaterTotalMl} ml
+                  {/* DETAIL ANALOGI GEN Z (KANAN) */}
+                  <div className="col-span-7 space-y-2">
+                    {/* METRIK KUAH INDOMIE */}
+                    <div className="p-2 bg-amber-50 border border-amber-300">
+                      <div className="flex justify-between items-center text-[11px] font-mono font-bold text-amber-950">
+                        <span>🍜 KUAH INDOMIE KARI</span>
+                        <span className="font-extrabold text-amber-900">
+                          {((sessionEvapTotalMl || (isSmartMode ? selectedTpl.goodWaterTotalMl : selectedTpl.badWaterTotalMl)) / 400).toFixed(2)}x Mangkok
                         </span>
                       </div>
-                      <div className="text-[10px] text-stone-500 font-mono mt-1">
+                      <div className="text-[10px] text-amber-800 font-mono mt-0.5">
+                        {sessionEvapTotalMl >= 400
+                          ? '🔥 1 mangkok kuah Indomie mendidih habis!'
+                          : '1 mangkok mi butuh 400 ml air mendidih'}
+                      </div>
+                    </div>
+
+                    {/* METRIK CUP BOBA */}
+                    <div className="p-2 bg-sky-50 border border-sky-300">
+                      <div className="flex justify-between items-center text-[11px] font-mono font-bold text-sky-950">
+                        <span>🧋 CUP BOBA / ES KOPI</span>
+                        <span className="font-extrabold text-sky-900">
+                          {((sessionEvapTotalMl || (isSmartMode ? selectedTpl.goodWaterTotalMl : selectedTpl.badWaterTotalMl)) / 500).toFixed(2)}x Gelas
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-sky-800 font-mono mt-0.5">Ukuran cup reguler (500 ml)</div>
+                    </div>
+
+                    {/* METRIK CAS IPHONE */}
+                    <div className="p-2 bg-emerald-50 border border-emerald-300">
+                      <div className="flex justify-between items-center text-[11px] font-mono font-bold text-emerald-950">
+                        <span>📱 CAS PENUH IPHONE</span>
+                        <span className="font-extrabold text-emerald-900">
+                          {selectedTpl.category === 'image' ? '1.0x (100% Penuh)' : '0.05x Cas'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-emerald-800 font-mono mt-0.5">
                         {selectedTpl.category === 'image'
-                          ? 'Setara ~9–27 sendok makan air bersih'
-                          : selectedTpl.category === 'deep'
-                          ? 'Setara ~2–8 sendok teh air bersih'
-                          : 'Setara ~1–3 sendok teh air bersih'}
+                          ? 'Beban difusi gambar setara ngecas HP dari 0-100%'
+                          : 'Chat teks butuh daya jauh lebih kecil'}
                       </div>
                     </div>
 
-                    {/* INDIKATOR TOTAL SESI NUGAS */}
-                    <div className="p-2.5 bg-[#F8F7F4] border border-[#141517]">
-                      <div className="flex justify-between text-[11px] font-mono font-bold text-stone-700">
-                        <span>AIR TERKURAS SESI INI</span>
-                        <span className="text-sky-800 font-extrabold">-{sessionEvapTotalMl} ml</span>
-                      </div>
-                      <div className="w-full h-2.5 bg-stone-200 border border-[#141517] mt-1.5 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${
-                            isSmartMode ? 'bg-emerald-600' : 'bg-red-600'
-                          }`}
-                          style={{ width: `${Math.min(100, (sessionEvapTotalMl / 600) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* SUHU GPU */}
-                    <div className="p-2.5 bg-[#F8F7F4] border border-[#141517]">
+                    {/* METRIK SUHU GPU */}
+                    <div className="p-2 bg-[#F8F7F4] border border-[#141517]">
                       <div className="flex justify-between text-[11px] font-mono font-bold text-stone-700">
                         <span className="flex items-center gap-1">
                           <Thermometer className="w-3.5 h-3.5 text-red-500" />
@@ -960,24 +1123,19 @@ The Thirsty Cloud: Literasi AI Hijau`;
                         </span>
                         <span className="text-red-600 font-bold">{currentGpuTemp}°C</span>
                       </div>
-                      <div className="w-full h-2 bg-stone-200 border border-[#141517] mt-1.5 overflow-hidden">
+                      <div className="w-full h-1.5 bg-stone-200 border border-[#141517] mt-1 overflow-hidden">
                         <div
                           className="h-full bg-amber-500 transition-all duration-300"
                           style={{ width: `${Math.min(100, ((currentGpuTemp - 40) / 50) * 100)}%` }}
                         />
                       </div>
                     </div>
-
-                    {/* SETARA MANGKOK INDOMIE */}
-                    <div className="p-2 bg-stone-100 border border-stone-300 text-[10px] font-mono text-stone-700">
-                      Air yang lenyap setara kuah <b>{((600 - bottleRemainingMl) / 400).toFixed(2)} mangkok</b> Indomie rebus.
-                    </div>
                   </div>
                 </div>
               </div>
 
               {/* TOMBOL PENGUJI: TUMPUK 1 SESI NUGAS */}
-              <div className="pt-3 border-t border-stone-200">
+              <div className="pt-2.5 border-t border-stone-200">
                 <button
                   onClick={() => {
                     const nextState = !isSessionStacked;
@@ -1163,37 +1321,164 @@ The Thirsty Cloud: Literasi AI Hijau`;
                 </div>
               </div>
 
-              {/* PIKTOGRAF MATRIKS GALON */}
-              <div className="my-4">
-                <div className="flex justify-between items-center text-[11px] font-mono font-bold mb-2">
-                  <span>MATRIKS GALON (1 KOTAK = 10 GALON AQUA / 190 LITER)</span>
-                  <span className="text-stone-500">{indomieBowlsCount.toLocaleString('id-ID')} Mangkok Indomie</span>
+              {/* ANALOGY MATRIX CONTROLLER (GEN Z TABS) */}
+              <div className="my-3">
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold mb-1.5">
+                  <span>PILIH ANALOGI VISUAL SKALA ANGKATAN:</span>
+                  <span className="text-amber-800 font-extrabold uppercase">Mode Gen Z</span>
                 </div>
 
-                <div className="p-3 bg-[#F8F7F4] border border-stone-300 min-h-[140px] max-h-[180px] overflow-y-auto grid grid-cols-10 sm:grid-cols-15 gap-1.5 content-start">
-                  {Array.from({ length: Math.min(150, Math.max(1, Math.ceil(gallonAquaCount / 10))) }).map((_, i) => (
-                    <div
-                      key={i}
-                      title={`10 Galon (${(i + 1) * 10 * 19} L)`}
-                      className={`h-6 border border-[#141517] flex items-center justify-center transition-all ${
-                        isClosedLoopSystem ? 'bg-emerald-500 text-white' : 'bg-sky-600 text-white'
-                      }`}
-                    >
-                      <Droplet className="w-3.5 h-3.5 fill-white" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-[#F8F7F4] border-2 border-[#141517] mb-2.5 font-mono text-xs font-bold">
+                  <button
+                    onClick={() => setAnalogyMatrixMode('indomie')}
+                    className={`py-1.5 px-2 flex items-center justify-center gap-1 transition-all ${
+                      analogyMatrixMode === 'indomie'
+                        ? 'bg-[#141517] text-white shadow-[2px_2px_0px_#f59e0b]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    🍜 Indomie Kuah
+                  </button>
+                  <button
+                    onClick={() => setAnalogyMatrixMode('boba')}
+                    className={`py-1.5 px-2 flex items-center justify-center gap-1 transition-all ${
+                      analogyMatrixMode === 'boba'
+                        ? 'bg-[#141517] text-white shadow-[2px_2px_0px_#0284c7]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    🧋 Gelas Boba
+                  </button>
+                  <button
+                    onClick={() => setAnalogyMatrixMode('gallon')}
+                    className={`py-1.5 px-2 flex items-center justify-center gap-1 transition-all ${
+                      analogyMatrixMode === 'gallon'
+                        ? 'bg-[#141517] text-white shadow-[2px_2px_0px_#0284c7]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    📦 Galon Aqua
+                  </button>
+                  <button
+                    onClick={() => setAnalogyMatrixMode('phone')}
+                    className={`py-1.5 px-2 flex items-center justify-center gap-1 transition-all ${
+                      analogyMatrixMode === 'phone'
+                        ? 'bg-[#141517] text-white shadow-[2px_2px_0px_#10b981]'
+                        : 'text-stone-700 hover:bg-stone-200'
+                    }`}
+                  >
+                    📱 Cas iPhone
+                  </button>
+                </div>
+
+                {/* HEADER ANALOGI AKTIF */}
+                <div className="p-2 bg-white border-2 border-[#141517] mb-2 flex items-center justify-between font-mono text-xs font-bold">
+                  {analogyMatrixMode === 'indomie' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">🍜</span>
+                      <span>
+                        TOTAL: <b className="text-amber-800 text-sm">{indomieBowlsCount.toLocaleString('id-ID')} Mangkok Indomie</b>
+                        <span className="text-stone-500 text-[10px] ml-2">(1 Ikon = 50 Mangkok)</span>
+                      </span>
                     </div>
-                  ))}
+                  )}
+                  {analogyMatrixMode === 'boba' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">🧋</span>
+                      <span>
+                        TOTAL: <b className="text-sky-800 text-sm">{bobaCupsCount.toLocaleString('id-ID')} Gelas Boba</b>
+                        <span className="text-stone-500 text-[10px] ml-2">(1 Ikon = 50 Gelas)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analogyMatrixMode === 'gallon' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">📦</span>
+                      <span>
+                        TOTAL: <b className="text-[#141517] text-sm">{gallonAquaCount.toLocaleString('id-ID')} Galon Aqua 19L</b>
+                        <span className="text-stone-500 text-[10px] ml-2">(1 Ikon = 10 Galon)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analogyMatrixMode === 'phone' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">📱</span>
+                      <span>
+                        TOTAL: <b className="text-emerald-800 text-sm">{phoneRechargeCount.toLocaleString('id-ID')} Kali Cas iPhone</b>
+                        <span className="text-stone-500 text-[10px] ml-2">(1 Ikon = 100 Kali Cas)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {gallonAquaCount > 1500 && (
-                  <div className="text-[11px] font-mono font-bold text-red-600 mt-1">
-                    + {(gallonAquaCount - 1500).toLocaleString('id-ID')} galon lainnya meluap dari batas layar!
-                  </div>
-                )}
+                {/* MATRIKS DINAMIS BERDASARKAN MODE ANALOGI */}
+                <div className="p-3 bg-[#F8F7F4] border border-stone-300 min-h-[130px] max-h-[170px] overflow-y-auto grid grid-cols-10 sm:grid-cols-15 gap-1.5 content-start">
+                  {(() => {
+                    const divisor =
+                      analogyMatrixMode === 'indomie' ? 50 : analogyMatrixMode === 'boba' ? 50 : analogyMatrixMode === 'phone' ? 100 : 10;
+                    const totalItems =
+                      analogyMatrixMode === 'indomie'
+                        ? indomieBowlsCount
+                        : analogyMatrixMode === 'boba'
+                        ? bobaCupsCount
+                        : analogyMatrixMode === 'phone'
+                        ? phoneRechargeCount
+                        : gallonAquaCount;
+                    const count = Math.min(150, Math.max(1, Math.ceil(totalItems / divisor)));
+
+                    return Array.from({ length: count }).map((_, i) => (
+                      <div
+                        key={i}
+                        title={`${(i + 1) * divisor}`}
+                        className={`h-7 border border-[#141517] flex items-center justify-center text-xs transition-all ${
+                          analogyMatrixMode === 'indomie'
+                            ? 'bg-amber-100 hover:bg-amber-200'
+                            : analogyMatrixMode === 'boba'
+                            ? 'bg-sky-100 hover:bg-sky-200'
+                            : analogyMatrixMode === 'phone'
+                            ? 'bg-emerald-100 hover:bg-emerald-200'
+                            : isClosedLoopSystem
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-sky-600 text-white'
+                        }`}
+                      >
+                        {analogyMatrixMode === 'indomie' ? (
+                          '🍜'
+                        ) : analogyMatrixMode === 'boba' ? (
+                          '🧋'
+                        ) : analogyMatrixMode === 'phone' ? (
+                          '⚡'
+                        ) : (
+                          <Droplet className="w-3.5 h-3.5 fill-white" />
+                        )}
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
 
-              {/* CATATAN HAK AIR BERSIH */}
-              <div className="text-xs font-mono text-stone-800 bg-amber-50 border border-amber-300 p-3 leading-relaxed">
-                <b>Realitas Pantura & Batam:</b> Air sebanyak <b>{totalAngkatanLiters.toLocaleString('id-ID')} Liter</b> ini setara pasokan air minum harian bagi <b>{familyDaysSupply} hari</b> untuk keluarga di pesisir utara Jawa Barat atau permukiman nelayan yang terancam krisis air perpipaan.
+              {/* KARTU PUNCHLINE GEN Z BERDASARKAN MODE */}
+              <div className="text-xs font-mono text-stone-900 bg-amber-50 border-2 border-amber-400 p-3 leading-relaxed shadow-[2px_2px_0px_#141517]">
+                {analogyMatrixMode === 'indomie' && (
+                  <span>
+                    🍜 <b>Fakta Menohok:</b> Kuah mi sebanyak <b>{indomieBowlsCount.toLocaleString('id-ID')} mangkok</b> ini cukup buat nraktir seluruh angkatanmu ({studentCount} siswa) makan Indomie kuah tiap hari selama <b>{Math.max(1, Math.round(indomieBowlsCount / (studentCount * 30)))} bulan penuh</b>!
+                  </span>
+                )}
+                {analogyMatrixMode === 'boba' && (
+                  <span>
+                    🧋 <b>Fakta Menohok:</b> Setara sedotan <b>{bobaCupsCount.toLocaleString('id-ID')} gelas</b> Boba Brown Sugar ukuran medium! Gak kebayang berapa antrean boba di mall yang dihabiskan satu angkatan!
+                  </span>
+                )}
+                {analogyMatrixMode === 'gallon' && (
+                  <span>
+                    📦 <b>Fakta Konstitusi & Hak Air:</b> Air sebanyak <b>{totalAngkatanLiters.toLocaleString('id-ID')} Liter ({gallonAquaCount.toLocaleString('id-ID')} Galon)</b> ini setara jatah air bersih harian bagi <b>{familyDaysSupply} hari</b> untuk satu keluarga di pesisir Pantura Cikarang/Bekasi atau Batam.
+                  </span>
+                )}
+                {analogyMatrixMode === 'phone' && (
+                  <span>
+                    📱 <b>Beban Listrik Nyata:</b> Energi komputasi GPU data center untuk melayani tugas AI satu angkatanmu setara dengan mengecas baterai smartphone sebanyak <b>{phoneRechargeCount.toLocaleString('id-ID')} kali</b> dari 0% ke 100%!
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1607,12 +1892,22 @@ The Thirsty Cloud: Literasi AI Hijau`;
                 <div className="font-bold text-sm text-white">
                   {studentName.trim() || 'Nama Pelajar'} — {schoolName.trim() || 'SMA Indonesia'}
                 </div>
-                <div className="text-cyan-300 font-extrabold text-base">
-                  {gallonAquaCount.toLocaleString('id-ID')} Galon Aqua
-                  <span className="text-slate-300 text-xs font-normal"> ({totalAngkatanLiters.toLocaleString('id-ID')} Liter)</span>
+                <div className="space-y-1.5 py-1">
+                  <div className="text-amber-400 font-extrabold text-sm flex items-center gap-1.5">
+                    <span>🍜</span>
+                    <span>{indomieBowlsCount.toLocaleString('id-ID')} Mangkok Indomie Kuah</span>
+                  </div>
+                  <div className="text-cyan-300 font-extrabold text-xs flex items-center gap-1.5">
+                    <span>📦</span>
+                    <span>{gallonAquaCount.toLocaleString('id-ID')} Galon Aqua ({totalAngkatanLiters.toLocaleString('id-ID')} Liter)</span>
+                  </div>
+                  <div className="text-emerald-400 font-extrabold text-xs flex items-center gap-1.5">
+                    <span>📱</span>
+                    <span>{phoneRechargeCount.toLocaleString('id-ID')}x Cas Penuh Baterai iPhone</span>
+                  </div>
                 </div>
                 <div className="text-[11px] text-slate-400 leading-snug">
-                  Potensi air yang diuapkan 1 angkatan ({studentCount} siswa) dalam 1 semester. Berkomitmen menerapkan Green Prompting & mengawal hak air konstitusi.
+                  Potensi air & daya 1 angkatan ({studentCount} siswa // {durationDays} hari). Berkomitmen menerapkan Green Prompting & kawal Pasal 33 UUD 1945.
                 </div>
               </div>
 
