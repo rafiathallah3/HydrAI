@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analisis Sirkuit Air Pendingin AI - Cikarang & Batam</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Space Grotesk & Space Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          },
+          colors: {
+            draft: {
+              bg: '#f8fafc',
+              surface: '#ffffff',
+              border: '#0f172a',
+              borderLight: '#cbd5e1',
+              text: '#0f172a',
+              muted: '#475569',
+              blue: '#0284c7',
+              blueDark: '#0369a1',
+              amber: '#d97706',
+              red: '#dc2626',
+              green: '#059669',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Strictly Zero Gradients - Crisp Architectural Light Mode */
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Animated dashed SVG lines for active water/thermal flow */
+    .flow-line {
+      stroke-dasharray: 6 6;
+      animation: dash 1s linear infinite;
+    }
+    .flow-line-reverse {
+      stroke-dasharray: 6 6;
+      animation: dashReverse 1s linear infinite;
+    }
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -12;
+      }
+    }
+    @keyframes dashReverse {
+      to {
+        stroke-dashoffset: 12;
+      }
+    }
+
+    /* High-contrast solid Scrubber / Slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #e2e8f0;
+      height: 6px;
+      border: 1px solid #0f172a;
+      border-radius: 0px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 22px;
+      width: 22px;
+      border-radius: 0px;
+      background: #0284c7;
+      cursor: pointer;
+      border: 2px solid #0f172a;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+
+    /* Architectural Drafting Dot Pattern (Pure solid SVG, zero CSS gradients) */
+    .draft-canvas {
+      background-color: #f8fafc;
+      background-size: 24px 24px;
+      background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23cbd5e1'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body class="min-h-screen text-draft-text antialiased selection:bg-draft-blue selection:text-white draft-canvas">
+
+  <!-- Header: Architectural Technical Bar -->
+  <header class="border-b-2 border-draft-border bg-white sticky top-0 z-40 px-4 py-3 shadow-sm">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-draft-blue flex items-center justify-center font-mono font-bold text-white text-xs border border-draft-border shadow-sm">
+          <i data-lucide="droplets" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-draft-text uppercase font-mono">
+              TELEMETRI AIR AI // KORIDOR CIKARANG-BATAM
+            </h1>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-draft-text text-white font-bold">EDISI 2026</span>
+          </div>
+          <p class="text-xs text-draft-muted font-mono flex items-center gap-1.5 mt-0.5">
+            <i data-lucide="building-2" class="w-3.5 h-3.5 text-draft-blue"></i>
+            Telkom University • Informatika • Proyek Kewarganegaraan
+          </p>
+        </div>
+      </div>
+
+      <!-- Telemetry Tags -->
+      <div class="flex items-center gap-3 text-xs font-mono">
+        <div class="flex items-center gap-1.5 border border-draft-border bg-draft-bg px-3 py-1.5 font-bold">
+          <i data-lucide="map-pin" class="w-4 h-4 text-draft-blue"></i>
+          <span>CEKUNGAN CITARUM-BEKASI</span>
+        </div>
+        <div id="badge-sipa" class="flex items-center gap-1.5 border border-draft-border bg-amber-100 text-amber-900 px-3 py-1.5 font-bold">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-draft-amber"></i>
+          <span id="label-sipa">SIPA OPAQUE (NON-METERAN)</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Top Controls: Scrubber & Policy Toggle -->
+    <div class="border-2 border-draft-border bg-white p-5 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        
+        <!-- Scrubber: Workload -->
+        <div class="flex-1 space-y-2">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <label for="workload-slider" class="text-draft-text uppercase font-bold tracking-wider flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-draft-blue"></i>
+              Beban Komputasi / Permintaan Siswa:
+            </label>
+            <span class="text-draft-blue font-bold text-sm bg-sky-50 px-2 py-0.5 border border-draft-blue">
+              <span id="val-workload">40</span> PROMPT / DETIK
+            </span>
+          </div>
+          <input 
+            type="range" 
+            id="workload-slider" 
+            min="1" 
+            max="200" 
+            value="40" 
+            oninput="handleWorkloadChange(this.value)"
+            class="w-full"
+          >
+          <div class="flex justify-between font-mono text-[11px] text-draft-muted font-medium">
+            <span>1 Prompt (Tes Mandiri)</span>
+            <span>40 Prompt (1 Kelas SMA Aktif)</span>
+            <span>200 Prompt (1 Sekolah Menengah)</span>
+          </div>
+        </div>
+
+        <div class="h-10 w-px bg-draft-borderLight hidden lg:block"></div>
+
+        <!-- Policy Toggle Buttons -->
+        <div class="space-y-2">
+          <div class="font-mono text-xs text-draft-text uppercase font-bold tracking-wider flex items-center gap-1.5">
+            <i data-lucide="wrench" class="w-4 h-4 text-draft-muted"></i>
+            Regulasi Sistem Pendingin:
+          </div>
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <button 
+              id="btn-mode-open" 
+              onclick="setCoolingMode('open')" 
+              class="px-4 py-2 bg-draft-blue text-white font-bold border-2 border-draft-border flex items-center gap-2 shadow-sm"
+            >
+              <i data-lucide="cloud-rain" class="w-4 h-4"></i>
+              <span>MENARA EVAPORATIF (STATUS QUO)</span>
+            </button>
+            <button 
+              id="btn-mode-closed" 
+              onclick="setCoolingMode('closed')" 
+              class="px-4 py-2 bg-white text-draft-muted font-bold border-2 border-draft-borderLight hover:border-draft-border hover:text-draft-text flex items-center gap-2 transition"
+            >
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+              <span>DRY CHILLER TERTUTUP (REGULASI)</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Central Interactive Diagram (SVG Circuit) -->
+    <div class="border-2 border-draft-border bg-white p-5 shadow-sm">
+      
+      <!-- Diagram Header -->
+      <div class="flex items-center justify-between border-b-2 border-draft-border pb-3 mb-4 font-mono text-xs">
+        <span class="text-draft-text font-bold flex items-center gap-2 uppercase tracking-wider">
+          <i data-lucide="activity" class="w-4 h-4 text-draft-blue"></i>
+          Diagram Sirkuit Termal & Ekstraksi Akuifer Cikarang
+        </span>
+        <span class="text-draft-muted font-medium">KLIK NODE UNTUK RINCIAN TEKNIS</span>
+      </div>
+
+      <!-- SVG Circuit Diagram Container -->
+      <div class="w-full overflow-x-auto pb-2">
+        <div class="min-w-[880px] relative">
+
+          <svg class="w-full h-80" viewBox="0 0 920 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            
+            <!-- Reference Technical Baseline Lines -->
+            <line x1="20" y1="280" x2="900" y2="280" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 2" />
+            <line x1="20" y1="40" x2="900" y2="40" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2 2" />
+            
+            <!-- Pipe 1: Compute -> Heat Exchanger (Thermal) -->
+            <path id="pipe-thermal" d="M 190 140 L 280 140" stroke="#d97706" stroke-width="4" class="flow-line" />
+            
+            <!-- Pipe 2: Cooling Tower -> Atmosphere (Steam Vent) -->
+            <path id="pipe-steam" d="M 470 100 L 470 45" stroke="#0284c7" stroke-width="4" stroke-dasharray="4 4" class="flow-line-reverse" />
+            
+            <!-- Pipe 3: Groundwater Intake Pipe -> Cooling Tower -->
+            <path id="pipe-intake" d="M 720 220 L 530 220 L 530 170" stroke="#0284c7" stroke-width="4" class="flow-line" />
+
+            <!-- NODE 01: COMPUTE CLUSTER -->
+            <g transform="translate(30, 85)" class="cursor-pointer" onclick="inspectNode('compute')">
+              <rect width="160" height="110" fill="#ffffff" stroke="#0f172a" stroke-width="2" />
+              <rect x="0" y="0" width="160" height="28" fill="#0f172a" />
+              <text x="12" y="19" fill="#ffffff" font-family="'Space Mono'" font-size="11" font-weight="bold">NODE 01: INFERENSI</text>
+              
+              <text x="12" y="48" fill="#475569" font-family="'Space Mono'" font-size="10" font-weight="bold">DAYA LISTRIK</text>
+              <text id="node-kw" x="12" y="68" fill="#0f172a" font-family="'Space Mono'" font-size="16" font-weight="bold">112.0 kW</text>
+              <text x="12" y="88" fill="#475569" font-family="'Space Mono'" font-size="10">AKSELERATOR</text>
+              <text x="12" y="101" fill="#d97706" font-family="'Space Mono'" font-size="10" font-weight="bold">NVIDIA H100 GPU</text>
+            </g>
+
+            <!-- NODE 02: SERVER THERMAL DISSIPATION -->
+            <g transform="translate(280, 85)" class="cursor-pointer" onclick="inspectNode('thermal')">
+              <rect width="160" height="110" fill="#ffffff" stroke="#0f172a" stroke-width="2" />
+              <rect x="0" y="0" width="160" height="28" fill="#0f172a" />
+              <text x="12" y="19" fill="#ffffff" font-family="'Space Mono'" font-size="11" font-weight="bold">NODE 02: SUHU RAK</text>
+              
+              <text x="12" y="48" fill="#475569" font-family="'Space Mono'" font-size="10" font-weight="bold">SUHU OPERASI</text>
+              <text id="node-temp" x="12" y="68" fill="#dc2626" font-family="'Space Mono'" font-size="16" font-weight="bold">66.8 °C</text>
+              <text x="12" y="88" fill="#475569" font-family="'Space Mono'" font-size="10">BEBAN KALOR</text>
+              <text id="node-btu" x="12" y="101" fill="#0f172a" font-family="'Space Mono'" font-size="10" font-weight="bold">382 kBTU/jam</text>
+            </g>
+
+            <!-- NODE 03: COOLING MECHANISM -->
+            <g transform="translate(470, 85)" class="cursor-pointer" onclick="inspectNode('cooling')">
+              <rect id="tower-box" width="180" height="110" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+              <rect id="tower-header" x="0" y="0" width="180" height="28" fill="#0284c7" />
+              <text id="tower-title" x="12" y="19" fill="#ffffff" font-family="'Space Mono'" font-size="11" font-weight="bold">NODE 03: PENDINGIN</text>
+              
+              <text x="12" y="48" fill="#475569" font-family="'Space Mono'" font-size="10" font-weight="bold">WUE EFISIENSI</text>
+              <text id="node-wue" x="12" y="68" fill="#0284c7" font-family="'Space Mono'" font-size="16" font-weight="bold">1.80 L/kWh</text>
+              <text x="12" y="88" fill="#475569" font-family="'Space Mono'" font-size="10">STATUS EVAPORASI</text>
+              <text id="node-steam-status" x="12" y="101" fill="#0284c7" font-family="'Space Mono'" font-size="10" font-weight="bold">MENGUAP AKTIF</text>
+            </g>
+
+            <!-- NODE 04: GROUNDWATER AQUIFER -->
+            <g transform="translate(710, 85)" class="cursor-pointer" onclick="inspectNode('aquifer')">
+              <rect width="190" height="195" fill="#ffffff" stroke="#0f172a" stroke-width="2" />
+              <rect x="0" y="0" width="190" height="28" fill="#0f172a" />
+              <text x="12" y="19" fill="#ffffff" font-family="'Space Mono'" font-size="11" font-weight="bold">NODE 04: AKUIFER CIKARANG</text>
+              
+              <!-- Upper Soil Layer -->
+              <rect x="12" y="38" width="166" height="42" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+              <text x="18" y="52" fill="#475569" font-family="'Space Mono'" font-size="9" font-weight="bold">AMBLAS TANAH (SUBSIDENCE)</text>
+              <text id="node-subsidence" x="18" y="70" fill="#dc2626" font-family="'Space Mono'" font-size="12" font-weight="bold">Amblas: 7.2 cm/thn</text>
+
+              <!-- Water Table Layer (Height changes dynamically) -->
+              <rect id="aquifer-layer" x="12" y="88" width="166" height="85" fill="#0284c7" />
+              <text x="18" y="105" fill="#ffffff" font-family="'Space Mono'" font-size="10" font-weight="bold">MUKA AIR TANAH</text>
+              <text id="node-drawdown" x="18" y="125" fill="#ffffff" font-family="'Space Mono'" font-size="14" font-weight="bold">-42.2 Meter</text>
+              <text x="18" y="160" fill="#ffffff" font-family="'Space Mono'" font-size="9" font-weight="bold">Defisit Sumur Warga</text>
+            </g>
+
+            <!-- Atmosphere Vapor Indicator Tag -->
+            <g transform="translate(415, 15)">
+              <rect width="115" height="26" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+              <text id="vent-text" x="8" y="18" fill="#0284c7" font-family="'Space Mono'" font-size="10" font-weight="bold">UAP: 201.6 L/JAM</text>
+            </g>
+
+          </svg>
+        </div>
+      </div>
+
+      <!-- Real-Time Physical Metrics Grid (Light mode, sharp contrast) -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t-2 border-draft-border font-mono text-xs">
+        
+        <div class="border border-draft-border bg-draft-bg p-3">
+          <div class="text-draft-muted font-bold flex items-center gap-1.5 text-[11px]">
+            <i data-lucide="cloud-drizzle" class="w-4 h-4 text-draft-blue"></i> PENGUAPAN AIR SEKARANG
+          </div>
+          <div class="text-xl font-bold text-draft-blue mt-1">
+            <span id="metric-evap-rate">201.6</span> <span class="text-xs text-draft-muted">L/jam</span>
+          </div>
+          <div class="text-[11px] text-draft-muted mt-0.5">
+            <span id="metric-prompt-cost">56.0</span> ml per prompt
+          </div>
+        </div>
+
+        <div class="border border-draft-border bg-draft-bg p-3">
+          <div class="text-draft-muted font-bold flex items-center gap-1.5 text-[11px]">
+            <i data-lucide="arrow-down-circle" class="w-4 h-4 text-draft-amber"></i> PENURUNAN TANAH (AMBLAS)
+          </div>
+          <div class="text-xl font-bold text-draft-amber mt-1">
+            <span id="metric-subsidence">7.2</span> <span class="text-xs text-draft-muted">cm/tahun</span>
+          </div>
+          <div class="text-[11px] text-draft-muted mt-0.5">Pantura & Cikarang</div>
+        </div>
+
+        <div class="border border-draft-border bg-draft-bg p-3">
+          <div class="text-draft-muted font-bold flex items-center gap-1.5 text-[11px]">
+            <i data-lucide="home" class="w-4 h-4 text-draft-red"></i> JATAH AIR KELUARGA DISEDOT
+          </div>
+          <div class="text-xl font-bold text-draft-red mt-1">
+            <span id="metric-family-rations">80.6</span> <span class="text-xs text-draft-muted">keluarga/hari</span>
+          </div>
+          <div class="text-[11px] text-draft-muted mt-0.5">Standar PDAM 60 L/hari</div>
+        </div>
+
+        <div class="border border-draft-border bg-draft-bg p-3">
+          <div class="text-draft-muted font-bold flex items-center gap-1.5 text-[11px]">
+            <i data-lucide="gauge" class="w-4 h-4 text-draft-text"></i> EFISIENSI WUE PENDINGIN
+          </div>
+          <div class="text-xl font-bold text-draft-text mt-1">
+            <span id="metric-wue-label">1.80</span> <span class="text-xs text-draft-muted">L/kWh</span>
+          </div>
+          <div id="metric-standard" class="text-[11px] text-draft-red font-bold mt-0.5">Standar EU: &lt; 0.40 (Gagal)</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- DYNAMIC VISUAL ASSET COUNTERS & SUBSIDENCE RULER (Replaces all text blocks) -->
+    <div class="border-2 border-draft-border bg-white p-5 shadow-sm space-y-4">
+      
+      <div class="flex items-center justify-between border-b-2 border-draft-border pb-3 font-mono text-xs">
+        <span class="text-draft-text font-bold flex items-center gap-2 uppercase tracking-wider">
+          <i data-lucide="scale" class="w-4 h-4 text-draft-blue"></i>
+          Konversi Visual: Volume Air yang Menguap vs Kebutuhan Nyata Masyarakat
+        </span>
+        <span class="text-draft-muted font-bold">AKUMULASI HARIAN (24 JAM KOMPUTASI)</span>
+      </div>
+
+      <!-- Main Visual Comparison Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        
+        <!-- Left: Scalable Visual Icon Tanks (8 cols) -->
+        <div class="md:col-span-8 space-y-4 font-mono text-xs">
+          
+          <!-- Asset 1: 19L Aqua Galon -->
+          <div class="border border-draft-border bg-draft-bg p-4 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-draft-text flex items-center gap-2">
+                <i data-lucide="cylinder" class="w-4 h-4 text-draft-blue"></i>
+                GALON AIR MINERAL 19 LITER
+              </span>
+              <span class="text-base font-bold text-draft-blue">
+                <span id="cnt-galon">254</span> GALON / HARI
+              </span>
+            </div>
+            <!-- Dynamic Mini-Galon Icons Container -->
+            <div id="grid-galon-icons" class="flex flex-wrap gap-1.5 pt-1">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Asset 2: 600ml Bottles -->
+          <div class="border border-draft-border bg-draft-bg p-4 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-draft-text flex items-center gap-2">
+                <i data-lucide="wine" class="w-4 h-4 text-draft-blue"></i>
+                BOTOL AIR MINUM 600 ML
+              </span>
+              <span class="text-base font-bold text-draft-blue">
+                <span id="cnt-bottles">8,064</span> BOTOL / HARI
+              </span>
+            </div>
+            <div class="w-full bg-slate-200 h-3 border border-draft-border overflow-hidden">
+              <div id="bar-bottles" class="bg-draft-blue h-full transition-all duration-300" style="width: 65%;"></div>
+            </div>
+          </div>
+
+          <!-- Asset 3: Family Water Tanks Displaced -->
+          <div class="border border-draft-border bg-draft-bg p-4 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-draft-red flex items-center gap-2">
+                <i data-lucide="home" class="w-4 h-4 text-draft-red"></i>
+                JATAH KELUARGA WARGA BEKASI / CITARUM
+              </span>
+              <span class="text-base font-bold text-draft-red">
+                <span id="cnt-families">80</span> KELUARGA / HARI
+              </span>
+            </div>
+            <!-- Dynamic Family Houses Icons Container -->
+            <div id="grid-family-icons" class="flex flex-wrap gap-2 pt-1">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Visual Land Subsidence Ruler (4 cols) -->
+        <div class="md:col-span-4 border-2 border-draft-border bg-draft-bg p-4 font-mono text-xs flex flex-col justify-between h-full">
+          <div>
+            <div class="font-bold text-draft-text uppercase flex items-center gap-2 mb-2 pb-2 border-b border-draft-border">
+              <i data-lucide="ruler" class="w-4 h-4 text-draft-amber"></i>
+              Mistar Amblas Tanah (Pantura)
+            </div>
+            <p class="text-[11px] text-draft-muted mb-3">
+              Laju amblas tahunan akibat ekstraksi air tanah industri tanpa resapan seimbang:
+            </p>
+          </div>
+
+          <!-- Physical Ruler Graphic -->
+          <div class="relative bg-white border-2 border-draft-border p-3 space-y-2 my-2">
+            
+            <!-- Ruler markings -->
+            <div class="flex justify-between text-[10px] text-draft-muted font-bold border-b border-slate-200 pb-1">
+              <span>0 cm</span>
+              <span>5 cm (Batas)</span>
+              <span>10 cm (Kritis)</span>
+              <span>15 cm</span>
+            </div>
+
+            <!-- Animated Needle Indicator -->
+            <div class="relative w-full h-8 bg-slate-100 border border-draft-border flex items-center px-1">
+              <div id="ruler-level-bar" class="h-6 bg-draft-amber transition-all duration-300 border border-draft-border" style="width: 48%;"></div>
+              <div id="ruler-value-badge" class="absolute right-2 font-bold text-draft-text text-xs">
+                7.2 cm/thn
+              </div>
+            </div>
+
+            <div class="flex justify-between text-[9px] font-bold mt-1">
+              <span class="text-draft-green">ZONA AMAN</span>
+              <span class="text-draft-amber">ZONA WASPADA</span>
+              <span class="text-draft-red">BAHAYA AMBLAS</span>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-draft-muted border-t border-draft-border pt-2 mt-2">
+            Status: <span id="ruler-status-text" class="font-bold text-draft-red">ZONA KRITIS (5-10 CM/THN)</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Inspector Drawer Modal (For Technical Drilldown) -->
+    <div id="inspector-overlay" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-draft-border max-w-lg w-full p-6 font-mono text-xs space-y-4 shadow-2xl">
+        
+        <div class="flex items-center justify-between border-b-2 border-draft-border pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4 text-draft-blue"></i>
+            <span id="inspect-title" class="font-bold text-draft-text uppercase">TELEMETRI TEKNIS</span>
+          </div>
+          <button onclick="closeInspector()" class="text-draft-muted hover:text-draft-text font-bold text-sm">
+            [TUTUP X]
+          </button>
+        </div>
+
+        <div id="inspect-content" class="text-draft-muted space-y-3 leading-relaxed text-xs">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="pt-3 border-t-2 border-draft-border flex justify-end">
+          <button onclick="closeInspector()" class="px-4 py-1.5 bg-draft-border text-white font-bold hover:bg-draft-muted">
+            KEMBALI KE DIAGRAM
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t-2 border-draft-border bg-white px-4 py-5 mt-12 font-mono text-xs text-draft-muted">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <span class="text-draft-text font-bold">PROYEK CIVICS INFORMATIKA TELKOM UNIVERSITY (2026)</span>
+        <p class="text-[11px] text-draft-muted mt-0.5">Analisis Penggunaan Air Data Center AI, Pasal 33 UUD 1945, SDG 6, dan SDG 16</p>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] font-bold text-draft-text">
+        <span class="flex items-center gap-1"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-draft-green"></i> SDG 16</span>
+        <span>•</span>
+        <span class="flex items-center gap-1"><i data-lucide="droplet" class="w-3.5 h-3.5 text-draft-blue"></i> SDG 6</span>
+        <span>•</span>
+        <span>PASAL 33 AYAT 3</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Simulation Logic Script -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // State Variables
+    let currentWorkload = 40; // Prompts / second
+    let currentCoolingMode = 'open'; // 'open' | 'closed'
+
+    // Node Telemetry Database for Drawer
+    const nodeDetails = {
+      compute: {
+        title: "NODE 01: PUSAT INFERENSI GPU (AI WORKLOAD)",
+        desc: "Klaster GPU pemroses prompt inferensi LLM. Kepadatan daya server komputasi akselerator mencapai 40 hingga 100 kW per rak server.",
+        data: [
+          { label: "Tipe Akselerator", val: "Nvidia H100 80GB SXM5" },
+          { label: "Konsumsi Listrik", val: "112.0 kW (Klaster Aktif)" },
+          { label: "Pemanfaatan Komputasi", val: "68% Utilisasi Matriks" }
+        ]
+      },
+      thermal: {
+        title: "NODE 02: DISIPASI TERMAL RAK SERVER",
+        desc: "Daya listrik diubah menjadi energi kalor. Pendinginan udara konvensional tidak efektif di atas 35 kW per rak pada iklim tropis Indonesia.",
+        data: [
+          { label: "Suhu Inti GPU", val: "66.8 °C (Batas Maksimal 85 °C)" },
+          { label: "Disipasi Panas", val: "382 kBTU per jam" },
+          { label: "Media Penukar Panas", val: "Cold-plate cair direct-to-chip" }
+        ]
+      },
+      cooling: {
+        title: "NODE 03: MENARA PENDINGIN EVAPORATIF",
+        desc: "Menara pendingin menyemprotkan air tanah tawar ke kisi radiator untuk membuang panas ke udara sebagai uap. Air lenyap dari hidrologi lokal.",
+        data: [
+          { label: "Sistem Terpasang", val: currentCoolingMode === 'open' ? "Menara Evaporatif Terbuka" : "Dry Chiller Tertutup" },
+          { label: "WUE Operasional", val: currentCoolingMode === 'open' ? "1.80 L/kWh" : "0.05 L/kWh" },
+          { label: "Standar EU Directive 2023/1791", val: currentCoolingMode === 'open' ? "Tidak Memenuhi Ambang" : "Lolos Uji Efisiensi" }
+        ]
+      },
+      aquifer: {
+        title: "NODE 04: AKUIFER CEKUNGAN CITARUM-BEKASI",
+        desc: "Air tanah diekstraksi dari Formasi Citalang/Damar. Ekstraksi masif menurunkan muka air tanah dan memicu amblas tanah pesisir utara Jawa.",
+        data: [
+          { label: "Kedalaman Muka Air", val: "-42.2 Meter di bawah permukaan tanah" },
+          { label: "Laju Amblas Pesisir", val: "5 hingga 10 cm per tahun" },
+          { label: "Konstitusi", val: "Pasal 33 UUD 1945: Air adalah res commune" }
+        ]
+      }
+    };
+
+    function handleWorkloadChange(val) {
+      currentWorkload = parseInt(val);
+      document.getElementById('val-workload').textContent = currentWorkload;
+      recalculateSimulation();
+    }
+
+    function setCoolingMode(mode) {
+      currentCoolingMode = mode;
+      const btnOpen = document.getElementById('btn-mode-open');
+      const btnClosed = document.getElementById('btn-mode-closed');
+      
+      const pipeSteam = document.getElementById('pipe-steam');
+      const pipeIntake = document.getElementById('pipe-intake');
+      const towerBox = document.getElementById('tower-box');
+      const towerHeader = document.getElementById('tower-header');
+      const badgeSipa = document.getElementById('badge-sipa');
+      const labelSipa = document.getElementById('label-sipa');
+
+      if (mode === 'open') {
+        btnOpen.className = "px-4 py-2 bg-draft-blue text-white font-bold border-2 border-draft-border flex items-center gap-2 shadow-sm";
+        btnClosed.className = "px-4 py-2 bg-white text-draft-muted font-bold border-2 border-draft-borderLight hover:border-draft-border hover:text-draft-text flex items-center gap-2 transition";
+        
+        pipeSteam.setAttribute('stroke', '#0284c7');
+        pipeSteam.style.display = 'block';
+        pipeIntake.setAttribute('stroke', '#0284c7');
+        towerBox.setAttribute('stroke', '#0284c7');
+        towerHeader.setAttribute('fill', '#0284c7');
+        
+        badgeSipa.className = "flex items-center gap-1.5 border border-draft-border bg-amber-100 text-amber-900 px-3 py-1.5 font-bold";
+        labelSipa.textContent = "SIPA OPAQUE (NON-METERAN)";
+      } else {
+        btnClosed.className = "px-4 py-2 bg-draft-green text-white font-bold border-2 border-draft-border flex items-center gap-2 shadow-sm";
+        btnOpen.className = "px-4 py-2 bg-white text-draft-muted font-bold border-2 border-draft-borderLight hover:border-draft-border hover:text-draft-text flex items-center gap-2 transition";
+        
+        pipeSteam.setAttribute('stroke', '#cbd5e1');
+        pipeSteam.style.display = 'none'; // No steam in dry cooling
+        pipeIntake.setAttribute('stroke', '#cbd5e1');
+        towerBox.setAttribute('stroke', '#059669');
+        towerHeader.setAttribute('fill', '#059669');
+
+        badgeSipa.className = "flex items-center gap-1.5 border border-draft-border bg-emerald-100 text-emerald-900 px-3 py-1.5 font-bold";
+        labelSipa.textContent = "SIPA AMAN (ZERO EXTRACTION)";
+      }
+
+      recalculateSimulation();
+      lucide.createIcons();
+    }
+
+    function recalculateSimulation() {
+      // 1. Compute & Heat Draw
+      const kw = (currentWorkload * 2.8).toFixed(1);
+      document.getElementById('node-kw').textContent = `${kw} kW`;
+
+      const temp = (58 + (currentWorkload * 0.14)).toFixed(1);
+      document.getElementById('node-temp').textContent = `${temp} °C`;
+      document.getElementById('node-btu').textContent = `${Math.round(kw * 3.412)} kBTU/jam`;
+
+      // 2. Cooling & Evaporation Metrics
+      const wue = currentCoolingMode === 'open' ? 1.80 : 0.05;
+      const hourlyWaterLiters = (kw * wue).toFixed(1);
+      const dailyWaterLiters = Math.round(hourlyWaterLiters * 24);
+      const promptWaterCostMl = currentCoolingMode === 'open' ? ((hourlyWaterLiters * 1000) / (currentWorkload * 3600)).toFixed(1) : "0.1";
+
+      // 3. Ground / Aquifer Drawdown
+      const subsidence = currentCoolingMode === 'open' ? (4.2 + (currentWorkload * 0.075)).toFixed(1) : "0.5";
+      const familyRations = currentCoolingMode === 'open' ? Math.round(dailyWaterLiters / 60) : 0;
+      const drawdownMeters = currentCoolingMode === 'open' ? (32 + (currentWorkload * 0.22)).toFixed(1) : "10.0";
+
+      // 4. Update Node 3 Display
+      document.getElementById('node-wue').textContent = `${wue.toFixed(2)} L/kWh`;
+      document.getElementById('node-wue').setAttribute('fill', currentCoolingMode === 'open' ? '#0284c7' : '#059669');
+      document.getElementById('node-steam-status').textContent = currentCoolingMode === 'open' ? "MENGUAP AKTIF" : "PENDINGIN KERING";
+      document.getElementById('node-steam-status').setAttribute('fill', currentCoolingMode === 'open' ? '#0284c7' : '#059669');
+      document.getElementById('vent-text').textContent = currentCoolingMode === 'open' ? `UAP: ${hourlyWaterLiters} L/JAM` : "UAP: 0 L/JAM";
+
+      // 5. Update Node 4 Aquifer Display
+      document.getElementById('node-subsidence').textContent = `Amblas: ${subsidence} cm/thn`;
+      document.getElementById('node-drawdown').textContent = `-${drawdownMeters} Meter`;
+
+      const layerHeight = currentCoolingMode === 'open' ? Math.max(25, 85 - (currentWorkload * 0.32)) : 80;
+      const aquiferLayer = document.getElementById('aquifer-layer');
+      aquiferLayer.setAttribute('height', layerHeight);
+      aquiferLayer.setAttribute('y', 173 - layerHeight);
+      aquiferLayer.setAttribute('fill', currentCoolingMode === 'open' ? '#0284c7' : '#059669');
+
+      // 6. Update Bottom Metric Cards
+      document.getElementById('metric-evap-rate').textContent = hourlyWaterLiters;
+      document.getElementById('metric-prompt-cost').textContent = promptWaterCostMl;
+      document.getElementById('metric-subsidence').textContent = subsidence;
+      document.getElementById('metric-family-rations').textContent = familyRations;
+      document.getElementById('metric-wue-label').textContent = wue.toFixed(2);
+
+      const standardTag = document.getElementById('metric-standard');
+      if (currentCoolingMode === 'open') {
+        standardTag.textContent = "Standar EU: < 0.40 (Gagal)";
+        standardTag.className = "text-[11px] text-draft-red font-bold mt-0.5";
+      } else {
+        standardTag.textContent = "Standar EU & Singapura Terpenuhi";
+        standardTag.className = "text-[11px] text-draft-green font-bold mt-0.5";
+      }
+
+      // 7. Update Asset Counters
+      const galonCount = Math.round(dailyWaterLiters / 19);
+      const bottleCount = Math.round(dailyWaterLiters / 0.6);
+      document.getElementById('cnt-galon').textContent = galonCount.toLocaleString('id-ID');
+      document.getElementById('cnt-bottles').textContent = bottleCount.toLocaleString('id-ID');
+      document.getElementById('cnt-families').textContent = familyRations.toLocaleString('id-ID');
+
+      // 8. Render Visual Icon Grids (Galon & Family Houses)
+      renderGalonIcons(galonCount);
+      renderFamilyIcons(familyRations);
+
+      // 9. Update Subsidence Ruler
+      const rulerPercentage = Math.min(100, Math.max(5, (subsidence / 15) * 100));
+      document.getElementById('ruler-level-bar').style.width = `${rulerPercentage}%`;
+      document.getElementById('ruler-value-badge').textContent = `${subsidence} cm/thn`;
+
+      const rulerStatus = document.getElementById('ruler-status-text');
+      if (subsidence > 8) {
+        document.getElementById('ruler-level-bar').className = "h-6 bg-draft-red transition-all duration-300 border border-draft-border";
+        rulerStatus.textContent = "ZONA KRITIS / BAHAYA AMBLAS";
+        rulerStatus.className = "font-bold text-draft-red";
+      } else if (subsidence > 4) {
+        document.getElementById('ruler-level-bar').className = "h-6 bg-draft-amber transition-all duration-300 border border-draft-border";
+        rulerStatus.textContent = "ZONA WASPADA (5-8 CM/THN)";
+        rulerStatus.className = "font-bold text-draft-amber";
+      } else {
+        document.getElementById('ruler-level-bar').className = "h-6 bg-draft-green transition-all duration-300 border border-draft-border";
+        rulerStatus.textContent = "ZONA AMAN TERKENDALI";
+        rulerStatus.className = "font-bold text-draft-green";
+      }
+    }
+
+    function renderGalonIcons(count) {
+      const container = document.getElementById('grid-galon-icons');
+      container.innerHTML = '';
+      const displayCount = Math.min(30, Math.max(1, Math.round(count / 10)));
+      for (let i = 0; i < displayCount; i++) {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = "inline-flex items-center justify-center w-6 h-6 bg-white border border-draft-border text-draft-blue";
+        iconSpan.innerHTML = `<i data-lucide="cylinder" class="w-3.5 h-3.5"></i>`;
+        container.appendChild(iconSpan);
+      }
+      lucide.createIcons();
+    }
+
+    function renderFamilyIcons(count) {
+      const container = document.getElementById('grid-family-icons');
+      container.innerHTML = '';
+      const displayCount = Math.min(24, Math.max(1, Math.round(count / 3)));
+      for (let i = 0; i < displayCount; i++) {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = "inline-flex items-center justify-center w-6 h-6 bg-white border border-draft-border text-draft-red";
+        iconSpan.innerHTML = `<i data-lucide="home" class="w-3.5 h-3.5"></i>`;
+        container.appendChild(iconSpan);
+      }
+      lucide.createIcons();
+    }
+
+    function inspectNode(nodeKey) {
+      const details = nodeDetails[nodeKey];
+      if (!details) return;
+
+      document.getElementById('inspect-title').textContent = details.title;
+      
+      let html = `<p class="text-draft-text font-medium">${details.desc}</p>`;
+      html += `<div class="border-2 border-draft-border bg-draft-bg p-3 space-y-2 mt-3">`;
+      details.data.forEach(item => {
+        html += `<div class="flex justify-between items-center py-1 border-b border-draft-borderLight last:border-0 font-mono text-xs">
+          <span class="text-draft-muted font-bold">${item.label}:</span>
+          <span class="text-draft-text font-bold">${item.val}</span>
+        </div>`;
+      });
+      html += `</div>`;
+
+      document.getElementById('inspect-content').innerHTML = html;
+      document.getElementById('inspector-overlay').classList.remove('hidden');
+    }
+
+    function closeInspector() {
+      document.getElementById('inspector-overlay').classList.add('hidden');
+    }
+
+    // Initialize Simulation
+    recalculateSimulation();
+  </script>
+</body>
+</html>
