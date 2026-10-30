@@ -62,12 +62,22 @@ Hasil build akan menghasilkan berkas tunggal `the_thirsty_cloud_app.html` dan `d
 
 Agar siswa dan guru dapat membukanya lewat tautan daring di ponsel mereka:
 
-### Opsi A: Deploy ke Vercel (Paling Direkomendasikan - 1 Menit)
+### Opsi A: Deploy ke GitHub Pages (Otomatis via GitHub Actions)
+1. Push branch `main` ke repository GitHub (`https://github.com/rafiathallah3/HydrAI`).
+2. Buka repository di browser: [github.com/rafiathallah3/HydrAI](https://github.com/rafiathallah3/HydrAI).
+3. Masuk ke tab **Settings** > **Pages** (di menu sebelah kiri).
+4. Di bagian **Build and deployment** > **Source**, ubah pilihan menjadi:
+   👉 **GitHub Actions**
+5. Alur kerja (workflow) akan otomatis berjalan pada tab **Actions**.
+6. Situs web akan aktif di:
+   🌐 **https://rafiathallah3.github.io/HydrAI/**
+
+### Opsi B: Deploy ke Vercel (1 Menit)
 1. Push repositori ini ke akun GitHub kamu.
 2. Buka [vercel.com](https://vercel.com) dan hubungkan akun GitHub.
 3. Impor repositori ini, klik **Deploy**. Vercel akan otomatis mengenali Vite dan memberikan link gratis berdomain `.vercel.app`.
 
-### Opsi B: Deploy ke Netlify
+### Opsi C: Deploy ke Netlify
 1. Buka [netlify.com](https://netlify.com).
 2. Tarik folder `dist/` hasil build langsung ke dasbor Netlify Drop, atau hubungkan lewat GitHub dengan Build command `npm run build` dan Publish directory `dist`.
 
